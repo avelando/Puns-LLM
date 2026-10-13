@@ -2,28 +2,25 @@ import json
 from collections import Counter, defaultdict
 from pathlib import Path
 
-SPLITS = ("train", "validation", "test")
+SOURCES = ("train.jsonl", "validation.jsonl", "test.jsonl")
 
 
 def load_puns(path: Path) -> dict[str, dict]:
-    if not path.is_file():
-        raise FileNotFoundError(path)
+    records = json.loads(path.read_text(encoding="utf-8"))
 
-    data = json.loads(path.read_text(encoding="utf-8"))
-
-    if not isinstance(data, list):
+    if not isinstance(records, list):
         raise TypeError("puns.json must contain a list")
 
     indexed = {}
 
-    for item in data:
-        if not isinstance(item, dict) or not isinstance(item.get("id"), str):
+    for record in records:
+        if not isinstance(record, dict) or not isinstance(record.get("id"), str):
             raise TypeError("Invalid pun record")
 
-        pun_id = item["id"]
-        signs = item.get("signs")
+        pun_id = record["id"]
+        signs = record.get("signs")
 
-        if pun_id in indexed or not isinstance(item.get("text"), str):
+        if pun_id in indexed or not isinstance(record.get("text"), str):
             raise ValueError(f"Duplicate ID or invalid text: {pun_id}")
 
         if not isinstance(signs, list) or not signs:
@@ -33,61 +30,49 @@ def load_puns(path: Path) -> dict[str, dict]:
             if not isinstance(sign, dict):
                 raise TypeError(f"Invalid sign: {pun_id}")
 
-            alternatives = sign.get("alternative sign")
-
             if not isinstance(sign.get("pun sign"), str):
                 raise TypeError(f"Invalid pun sign: {pun_id}")
 
-            if not isinstance(alternatives, list) or not alternatives:
-                raise ValueError(f"Invalid alternative signs: {pun_id}")
+            if not isinstance(sign.get("alternative sign"), list):
+                raise TypeError(f"Invalid alternative signs: {pun_id}")
 
-            if not all(isinstance(value, str) for value in alternatives):
-                raise ValueError(f"Invalid alternative sign value: {pun_id}")
+            if not sign["alternative sign"] or not all(
+                isinstance(value, str) and value.strip() for value in sign["alternative sign"]
+            ):
+                raise ValueError(f"Invalid alternative signs: {pun_id}")
 
             if type(sign.get("homograph")) is not bool or type(sign.get("homophone")) is not bool:
                 raise ValueError(f"Invalid linguistic labels: {pun_id}")
 
-        indexed[pun_id] = item
+        indexed[pun_id] = record
 
     return indexed
 
 
 def load_jsonl(path: Path):
-    if not path.is_file():
-        raise FileNotFoundError(path)
-
     with path.open(encoding="utf-8") as stream:
         for line_number, line in enumerate(stream, 1):
             if line.strip():
                 record = json.loads(line)
 
                 if not isinstance(record, dict):
-                    raise ValueError(f"Invalid record: {path}:{line_number}")
+                    raise TypeError(f"Invalid record: {path}:{line_number}")
 
                 yield record
 
 
 def prepare_corpus(root: Path) -> dict:
     raw_dir = root / "data" / "raw"
-    output_dir = root / "data" / "processed"
-    report_dir = root / "results" / "data_preparation"
-
     originals = load_puns(raw_dir / "puns.json")
-    processed = []
-    seen = set()
-    split_counts = {}
-    categories = Counter()
-    duplicate_texts = defaultdict(list)
+    positives = {}
 
-    for split in SPLITS:
-        counts = Counter()
-
-        for sample in load_jsonl(raw_dir / f"{split}.jsonl"):
+    for filename in SOURCES:
+        for sample in load_jsonl(raw_dir / filename):
             source_id = sample.get("id")
             label = sample.get("label")
 
             if not isinstance(source_id, str) or type(label) is not int or label not in (0, 1):
-                raise ValueError(f"Invalid example ID or label in {split}")
+                raise ValueError(f"Invalid example in {filename}")
 
             pun_id, separator, suffix = source_id.rpartition(".")
 
@@ -97,29 +82,19 @@ def prepare_corpus(root: Path) -> dict:
             if (label == 1) != (suffix == "H"):
                 raise ValueError(f"Inconsistent label: {source_id}")
 
-            counts["total"] += 1
-
             if label == 0:
-                counts["non_puns"] += 1
                 continue
 
-            counts["puns"] += 1
+            if pun_id in positives or pun_id not in originals:
+                raise ValueError(f"Duplicate or unknown positive example: {pun_id}")
 
-            if pun_id in seen:
-                raise ValueError(f"Duplicate positive example ID: {pun_id}")
-
-            if pun_id not in originals:
-                raise ValueError(f"Missing annotation: {pun_id}")
-
-            original = originals[pun_id]
-
-            if sample.get("text") != original["text"]:
+            if sample.get("text") != originals[pun_id]["text"]:
                 raise ValueError(f"Text mismatch: {pun_id}")
 
             tokens = sample.get("tokens")
             labels = sample.get("labels")
 
-            if not isinstance(tokens, list) or not all(isinstance(t, str) for t in tokens):
+            if not isinstance(tokens, list) or not all(isinstance(token, str) for token in tokens):
                 raise ValueError(f"Invalid tokens: {pun_id}")
 
             if not isinstance(labels, list) or len(tokens) != len(labels):
@@ -131,58 +106,59 @@ def prepare_corpus(root: Path) -> dict:
             if not any(labels):
                 raise ValueError(f"Missing positive token labels: {pun_id}")
 
-            signs = []
+            positives[pun_id] = {"tokens": tokens, "labels": labels}
 
-            for sign in original["signs"]:
-                signs.append(
-                    {
-                        "pun_sign": sign["pun sign"],
-                        "alternative_signs": sign["alternative sign"],
-                        "homograph": sign["homograph"],
-                        "homophone": sign["homophone"],
-                    }
-                )
+    if positives.keys() != originals.keys():
+        raise ValueError(f"Missing positive examples: {len(originals.keys() - positives.keys())}")
 
-                categories[f"{int(sign['homograph'])}_{int(sign['homophone'])}"] += 1
+    processed = []
+    categories = Counter()
+    text_groups = defaultdict(list)
 
-            record = {
+    for pun_id, original in originals.items():
+        signs = []
+
+        for sign in original["signs"]:
+            signs.append(
+                {
+                    "pun_sign": sign["pun sign"],
+                    "alternative_signs": sign["alternative sign"],
+                    "homograph": sign["homograph"],
+                    "homophone": sign["homophone"],
+                }
+            )
+
+            categories[f"{int(sign['homograph'])}_{int(sign['homophone'])}"] += 1
+
+        processed.append(
+            {
                 "id": pun_id,
-                "source_id": source_id,
-                "split": split,
                 "text": original["text"],
-                "tokens": tokens,
-                "labels": labels,
+                "tokens": positives[pun_id]["tokens"],
+                "labels": positives[pun_id]["labels"],
                 "signs": signs,
             }
+        )
 
-            processed.append(record)
-            duplicate_texts[record["text"]].append({"id": pun_id, "split": split})
-            seen.add(pun_id)
-
-        split_counts[split] = dict(counts)
-
-    if seen != originals.keys():
-        raise ValueError(f"Missing positive examples: {len(originals.keys() - seen)}")
-
-    duplicates = [entries for entries in duplicate_texts.values() if len(entries) > 1]
+        text_groups[original["text"]].append(pun_id)
 
     report = {
         "total_puns": len(processed),
-        "total_signs": sum(len(item["signs"]) for item in processed),
-        "splits": split_counts,
-        "sign_categories": {key: categories.get(key, 0) for key in ("0_0", "0_1", "1_0", "1_1")},
-        "duplicate_text_groups": duplicates,
+        "total_signs": sum(len(record["signs"]) for record in processed),
+        "sign_categories": {key: categories[key] for key in ("0_0", "0_1", "1_0", "1_1")},
+        "duplicate_text_groups": [ids for ids in text_groups.values() if len(ids) > 1],
     }
+
+    output_dir = root / "data" / "processed"
+    report_dir = root / "results" / "data_preparation"
 
     output_dir.mkdir(parents=True, exist_ok=True)
     report_dir.mkdir(parents=True, exist_ok=True)
 
-    for split in SPLITS:
-        records = [item for item in processed if item["split"] == split]
-        (output_dir / f"{split}_puns.json").write_text(
-            json.dumps(records, ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
+    (output_dir / "puns_only.json").write_text(
+        json.dumps(processed, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
     (report_dir / "summary.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n",

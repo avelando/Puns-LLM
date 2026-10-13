@@ -35,15 +35,17 @@ class FakeOllama:
 
 
 def create_project(tmp_path):
-    (tmp_path / "data/processed").mkdir(parents=True)
-    (tmp_path / "configs/experiments").mkdir(parents=True)
-    (tmp_path / "configs/models").mkdir(parents=True)
-    (tmp_path / "configs/prompts").mkdir(parents=True)
+    for directory in (
+        "data/processed",
+        "configs/experiments",
+        "configs/models",
+        "configs/prompts",
+    ):
+        (tmp_path / directory).mkdir(parents=True)
 
-    examples = [
+    records = [
         {
             "id": "1.1",
-            "split": "validation",
             "text": "Porque ele socorre.",
             "signs": [
                 {
@@ -54,7 +56,6 @@ def create_project(tmp_path):
         },
         {
             "id": "1.2",
-            "split": "validation",
             "text": "Porque o outro socorre.",
             "signs": [
                 {
@@ -65,14 +66,10 @@ def create_project(tmp_path):
         },
     ]
 
-    (tmp_path / "data/processed/validation_puns.json").write_text(
-        json.dumps(examples),
-        encoding="utf-8",
-    )
+    (tmp_path / "data/processed/puns_only.json").write_text(json.dumps(records))
 
     settings = {
         "model": "gemma3:27b",
-        "split": "validation",
         "limit": 1,
         "host": "http://localhost:11434",
         "temperature": 0,
@@ -82,20 +79,13 @@ def create_project(tmp_path):
         "timeout_seconds": 300,
     }
 
-    (tmp_path / "configs/experiments/zero_shot.json").write_text(
-        json.dumps(settings),
-        encoding="utf-8",
-    )
+    (tmp_path / "configs/experiments/zero_shot.json").write_text(json.dumps(settings))
 
     (tmp_path / "configs/models/ollama.json").write_text(
-        json.dumps({"models": {"gemma3:27b": {"think": None}}}),
-        encoding="utf-8",
+        json.dumps({"models": {"gemma3:27b": {"think": None}}})
     )
 
-    (tmp_path / "configs/prompts/zero_shot.txt").write_text(
-        "Identify the pun.\n\n{text}",
-        encoding="utf-8",
-    )
+    (tmp_path / "configs/prompts/zero_shot.txt").write_text("Identify the pun.\n\n{text}")
 
 
 def test_zero_shot_resume_without_gold_leakage(tmp_path):
@@ -111,6 +101,7 @@ def test_zero_shot_resume_without_gold_leakage(tmp_path):
     assert third["total_attempts_in_file"] == 2
     assert len(client.calls) == 2
     assert "gold secret" not in json.dumps(client.calls)
+    assert "validation" not in json.dumps(client.calls)
 
 
 def test_refuse_changed_configuration(tmp_path):
@@ -121,6 +112,7 @@ def test_refuse_changed_configuration(tmp_path):
 
     settings = tmp_path / "configs/experiments/zero_shot.json"
     data = json.loads(settings.read_text())
+
     data["temperature"] = 0.5
     settings.write_text(json.dumps(data))
 

@@ -10,10 +10,8 @@ from puns_llm.menu import MenuAction, run_menu
 
 def prepare_action(root: Path) -> None:
     report = prepare_corpus(root)
-
     print(json.dumps(report, ensure_ascii=False, indent=2))
-    for split in ("train", "validation", "test"):
-        print(f"Saved: data/processed/{split}_puns.json")
+    print("Saved: data/processed/puns_only.json")
     print("Saved: results/data_preparation/summary.json")
 
 
@@ -24,35 +22,14 @@ def zero_shot_action(root: Path) -> None:
 
 def main() -> int:
     actions = [
-        MenuAction(
-            "1",
-            "prepare",
-            "Prepare corpus",
-            prepare_action,
-        ),
-        MenuAction(
-            "2",
-            "zero-shot",
-            "Zero-shot inference",
-            zero_shot_action,
-        ),
+        MenuAction("1", "prepare", "Prepare corpus", prepare_action),
+        MenuAction("2", "zero-shot", "Zero-shot inference", zero_shot_action),
     ]
 
     parser = argparse.ArgumentParser(prog="puns-llm")
-    parser.add_argument(
-        "--action",
-        choices=[action.command for action in actions],
-    )
-    parser.add_argument(
-        "--root",
-        type=Path,
-        default=Path(__file__).resolve().parents[2],
-    )
+    parser.add_argument("--action", choices=[action.command for action in actions])
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument("--model")
-    parser.add_argument(
-        "--split",
-        choices=["train", "validation", "test"],
-    )
     parser.add_argument("--limit", type=int)
     parser.add_argument("--ollama-host")
 
@@ -66,13 +43,13 @@ def main() -> int:
             report = run_zero_shot(
                 args.root,
                 model=args.model,
-                split=args.split,
                 limit=args.limit,
                 host=args.ollama_host,
             )
             print(json.dumps(report, ensure_ascii=False, indent=2))
         else:
             prepare_action(args.root)
+
     except (OSError, RuntimeError, TypeError, ValueError) as error:
         print(f"Error: {error}", file=sys.stderr)
         return 1

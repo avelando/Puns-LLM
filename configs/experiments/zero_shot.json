@@ -1,6 +1,5 @@
 {
   "model": "gemma3:27b",
-  "split": "validation",
   "limit": 5,
   "host": "http://127.0.0.1:11434",
   "temperature": 0,
