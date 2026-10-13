@@ -33,7 +33,7 @@ def make_cohorts(root: Path, size: int = 48, seed: int = 42) -> dict:
     ]
 
     def order(item):
-        return digest(f"{seed}:{item['id']}".encode("utf-8"))
+        return digest(f"{seed}:{item['id']}".encode())
 
     eligible.sort(key=order)
     selected = []

@@ -7,6 +7,7 @@ from puns_llm.data.cohorts import cohort_ids, make_cohorts
 from puns_llm.data.prepare import prepare_corpus
 from puns_llm.evaluation.score import evaluate_run
 from puns_llm.evaluation.score_v2 import evaluate_v2
+from puns_llm.evaluation.score_v3 import evaluate_v3
 from puns_llm.inference.ollama import OllamaClient
 from puns_llm.inference.zero_shot import PROTOCOLS, run_zero_shot
 from puns_llm.menu import MenuAction, run_menu
@@ -45,6 +46,11 @@ def score_action(root: Path) -> None:
     show(evaluate_v2(root, config["model"], config["protocol"], limit=config["limit"]))
 
 
+def score_v3_action(root: Path) -> None:
+    config = settings_for(root)
+    show(evaluate_v3(root, config["model"], config["protocol"], limit=config["limit"]))
+
+
 def report_cohorts(payload: dict) -> None:
     show(
         {
@@ -75,6 +81,7 @@ def main() -> int:
         MenuAction("2", "zero-shot", "Run linguistic inference", inference_action),
         MenuAction("3", "evaluate", "Evaluate legacy results", legacy_action),
         MenuAction("4", "evaluate-v2", "Evaluate with extended metrics", score_action),
+        MenuAction("8", "evaluate-v3", "Evaluate with corrected token metrics", score_v3_action),
         MenuAction("5", "make-pilot", "Create pilot and official ID cohorts", pilot_action),
         MenuAction("6", "freeze", "Freeze methodology", freeze_action),
         MenuAction("7", "verify-freeze", "Verify frozen methodology", verify_action),
@@ -123,9 +130,9 @@ def main() -> int:
                     retry_invalid=args.retry_invalid,
                 )
             )
-        elif args.action == "evaluate-v2":
+        elif args.action in ("evaluate-v2", "evaluate-v3"):
             show(
-                evaluate_v2(
+                (evaluate_v2 if args.action == "evaluate-v2" else evaluate_v3)(
                     args.root,
                     model,
                     protocol,
