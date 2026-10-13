@@ -12,7 +12,8 @@ def prepare_action(root: Path) -> None:
     report = prepare_corpus(root)
 
     print(json.dumps(report, ensure_ascii=False, indent=2))
-    print("Saved: data/processed/puns_only.json")
+    for split in ("train", "validation", "test"):
+        print(f"Saved: data/processed/{split}_puns.json")
     print("Saved: results/data_preparation/summary.json")
 
 
@@ -72,7 +73,7 @@ def main() -> int:
             print(json.dumps(report, ensure_ascii=False, indent=2))
         else:
             prepare_action(args.root)
-    except (OSError, RuntimeError, ValueError) as error:
+    except (OSError, RuntimeError, TypeError, ValueError) as error:
         print(f"Error: {error}", file=sys.stderr)
         return 1
 

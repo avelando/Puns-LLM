@@ -17,14 +17,18 @@ class FakeOllama:
 
         return {
             "message": {
-                "content": json.dumps({
-                    "signs": [{
-                        "pun_sign": "socorre",
-                        "alternative_signs": ["só corre"],
-                        "homograph": False,
-                        "homophone": True,
-                    }]
-                })
+                "content": json.dumps(
+                    {
+                        "signs": [
+                            {
+                                "pun_sign": "socorre",
+                                "alternative_signs": ["só corre"],
+                                "homograph": False,
+                                "homophone": True,
+                            }
+                        ]
+                    }
+                )
             },
             "eval_count": 25,
         }
@@ -41,23 +45,27 @@ def create_project(tmp_path):
             "id": "1.1",
             "split": "validation",
             "text": "Porque ele socorre.",
-            "signs": [{
-                "pun_sign": "secret",
-                "alternative_signs": ["gold secret"],
-            }],
+            "signs": [
+                {
+                    "pun_sign": "secret",
+                    "alternative_signs": ["gold secret"],
+                }
+            ],
         },
         {
             "id": "1.2",
             "split": "validation",
             "text": "Porque o outro socorre.",
-            "signs": [{
-                "pun_sign": "secret",
-                "alternative_signs": ["gold secret"],
-            }],
+            "signs": [
+                {
+                    "pun_sign": "secret",
+                    "alternative_signs": ["gold secret"],
+                }
+            ],
         },
     ]
 
-    (tmp_path / "data/processed/puns_only.json").write_text(
+    (tmp_path / "data/processed/validation_puns.json").write_text(
         json.dumps(examples),
         encoding="utf-8",
     )
@@ -80,16 +88,12 @@ def create_project(tmp_path):
     )
 
     (tmp_path / "configs/models/ollama.json").write_text(
-        json.dumps({
-            "models": {
-                "gemma3:27b": {"think": None}
-            }
-        }),
+        json.dumps({"models": {"gemma3:27b": {"think": None}}}),
         encoding="utf-8",
     )
 
     (tmp_path / "configs/prompts/zero_shot.txt").write_text(
-        "Identify the pun.",
+        "Identify the pun.\n\n{text}",
         encoding="utf-8",
     )
 

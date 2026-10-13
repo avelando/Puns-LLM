@@ -9,7 +9,6 @@ from puns_llm.inference.schema import (
     parse_prediction,
 )
 
-
 SPLITS = {"train", "validation", "test"}
 
 
@@ -55,9 +54,15 @@ def run_zero_shot(
     if type(limit) is not int or limit < 0:
         raise ValueError("Limit must be a nonnegative integer")
 
-    data_path = root / "data/processed/puns_only.json"
+    data_path = root / "data" / "processed" / f"{split}_puns.json"
     dataset = load_json(data_path)
-    examples = [item for item in dataset if item["split"] == split]
+
+    if not isinstance(dataset, list) or any(
+        not isinstance(item, dict) or item.get("split") != split for item in dataset
+    ):
+        raise ValueError(f"Invalid processed split: {split}")
+
+    examples = dataset
 
     if not examples:
         raise ValueError(f"No examples in split: {split}")
@@ -65,9 +70,7 @@ def run_zero_shot(
     if limit:
         examples = examples[:limit]
 
-    instructions = (
-        root / "configs/prompts/zero_shot.txt"
-    ).read_text(encoding="utf-8")
+    instructions = (root / "configs/prompts/zero_shot.txt").read_text(encoding="utf-8")
 
     options = {
         "temperature": settings["temperature"],
@@ -85,33 +88,23 @@ def run_zero_shot(
         "model": model,
         "model_digest": digest,
         "split": split,
-        "dataset_sha256": hashlib.sha256(
-            data_path.read_bytes()
-        ).hexdigest(),
-        "prompt_sha256": hashlib.sha256(
-            instructions.encode("utf-8")
-        ).hexdigest(),
+        "dataset_sha256": hashlib.sha256(data_path.read_bytes()).hexdigest(),
+        "prompt_sha256": hashlib.sha256(instructions.encode("utf-8")).hexdigest(),
         "schema_sha256": fingerprint(PREDICTION_SCHEMA),
         "options": options,
         "think": think,
     }
 
-    output_dir = (
-        root / "results/zero_shot" / model.replace(":", "_") / split
-    )
+    output_dir = root / "results/zero_shot" / model.replace(":", "_") / split
 
     metadata_path = output_dir / "metadata.json"
     predictions_path = output_dir / "predictions.jsonl"
 
     if metadata_path.exists():
         if load_json(metadata_path) != profile:
-            raise ValueError(
-                f"Run configuration changed: {metadata_path}"
-            )
+            raise ValueError(f"Run configuration changed: {metadata_path}")
     elif predictions_path.exists():
-        raise ValueError(
-            f"Missing metadata for existing predictions: {predictions_path}"
-        )
+        raise ValueError(f"Missing metadata for existing predictions: {predictions_path}")
     else:
         output_dir.mkdir(parents=True, exist_ok=True)
         metadata_path.write_text(
@@ -161,28 +154,21 @@ def run_zero_shot(
                 "total_duration": response.get("total_duration"),
             }
 
-            stream.write(
-                json.dumps(record, ensure_ascii=False) + "\n"
-            )
+            stream.write(json.dumps(record, ensure_ascii=False) + "\n")
             stream.flush()
 
             status = "ok" if error is None else "invalid"
             print(f"{model} | {split} | {sample['id']} | {status}")
 
     attempts = read_predictions(predictions_path)
-    last_attempts = {
-        item["id"]: item for item in attempts
-    }
+    last_attempts = {item["id"]: item for item in attempts}
 
-    selected_ids = {
-        item["id"] for item in examples
-    }
+    selected_ids = {item["id"] for item in examples}
 
     successful_ids = {
         item["id"]
         for item in attempts
-        if item["id"] in selected_ids
-        and item["prediction"] is not None
+        if item["id"] in selected_ids and item["prediction"] is not None
     }
 
     invalid_count = sum(

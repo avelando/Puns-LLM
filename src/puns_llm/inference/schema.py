@@ -1,6 +1,5 @@
 import json
 
-
 PREDICTION_SCHEMA = {
     "type": "object",
     "properties": {
@@ -62,10 +61,7 @@ def parse_prediction(content: str) -> dict:
         if (
             not isinstance(alternatives, list)
             or not alternatives
-            or not all(
-                isinstance(value, str) and value.strip()
-                for value in alternatives
-            )
+            or not all(isinstance(value, str) and value.strip() for value in alternatives)
         ):
             raise ValueError("Invalid alternative signs")
 
@@ -75,8 +71,8 @@ def parse_prediction(content: str) -> dict:
     return prediction
 
 
-def build_messages(text: str, instructions: str) -> list[dict]:
-    return [
-        {"role": "system", "content": instructions},
-        {"role": "user", "content": f"Portuguese pun:\n{text}"},
-    ]
+def build_messages(text: str, template: str) -> list[dict]:
+    if template.count("{text}") != 1:
+        raise ValueError("Prompt must contain exactly one {text} placeholder")
+
+    return [{"role": "user", "content": template.replace("{text}", text)}]

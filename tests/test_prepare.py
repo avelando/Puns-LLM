@@ -9,16 +9,20 @@ def create_fixture(root):
     raw = root / "data" / "raw"
     raw.mkdir(parents=True)
 
-    originals = [{
-        "id": "1.1",
-        "text": "A word.",
-        "signs": [{
-            "pun sign": "word",
-            "alternative sign": ["word", "other"],
-            "homograph": True,
-            "homophone": False,
-        }],
-    }]
+    originals = [
+        {
+            "id": "1.1",
+            "text": "A word.",
+            "signs": [
+                {
+                    "pun sign": "word",
+                    "alternative sign": ["word", "other"],
+                    "homograph": True,
+                    "homophone": False,
+                }
+            ],
+        }
+    ]
 
     (raw / "puns.json").write_text(
         json.dumps(originals),
@@ -56,9 +60,7 @@ def test_prepare_puns_only(tmp_path):
     create_fixture(tmp_path)
 
     report = prepare_corpus(tmp_path)
-    records = json.loads(
-        (tmp_path / "data/processed/puns_only.json").read_text()
-    )
+    records = json.loads((tmp_path / "data/processed/train_puns.json").read_text())
 
     assert report["total_puns"] == 1
     assert report["total_signs"] == 1
@@ -68,6 +70,8 @@ def test_prepare_puns_only(tmp_path):
     assert records[0]["source_id"] == "1.1.H"
     assert records[0]["labels"] == [0, 1, 0]
     assert records[0]["signs"][0]["alternative_signs"] == ["word", "other"]
+    assert json.loads((tmp_path / "data/processed/validation_puns.json").read_text()) == []
+    assert json.loads((tmp_path / "data/processed/test_puns.json").read_text()) == []
 
 
 def test_reject_mismatched_text(tmp_path):
@@ -85,4 +89,4 @@ def test_reject_mismatched_text(tmp_path):
     with pytest.raises(ValueError, match="Text mismatch"):
         prepare_corpus(tmp_path)
 
-    assert not (tmp_path / "data/processed/puns_only.json").exists()
+    assert not (tmp_path / "data/processed/train_puns.json").exists()

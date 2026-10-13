@@ -1,6 +1,6 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
 
 
 @dataclass(frozen=True)
@@ -37,5 +37,5 @@ def run_menu(actions: list[MenuAction], root: Path) -> int:
 
         try:
             options[selected].handler(root)
-        except (OSError, RuntimeError, ValueError) as error:
+        except (OSError, RuntimeError, TypeError, ValueError) as error:
             print(f"Error: {error}")

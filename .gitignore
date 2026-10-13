@@ -21,3 +21,5 @@ artifacts/logs/*
 *.pt
 *.pth
 *.ckpt
+
+/artifacts/ollama/

@@ -2,7 +2,6 @@ import json
 from collections import Counter, defaultdict
 from pathlib import Path
 
-
 SPLITS = ("train", "validation", "test")
 
 
@@ -13,13 +12,13 @@ def load_puns(path: Path) -> dict[str, dict]:
     data = json.loads(path.read_text(encoding="utf-8"))
 
     if not isinstance(data, list):
-        raise ValueError("puns.json must contain a list")
+        raise TypeError("puns.json must contain a list")
 
     indexed = {}
 
     for item in data:
         if not isinstance(item, dict) or not isinstance(item.get("id"), str):
-            raise ValueError("Invalid pun record")
+            raise TypeError("Invalid pun record")
 
         pun_id = item["id"]
         signs = item.get("signs")
@@ -32,12 +31,12 @@ def load_puns(path: Path) -> dict[str, dict]:
 
         for sign in signs:
             if not isinstance(sign, dict):
-                raise ValueError(f"Invalid sign: {pun_id}")
+                raise TypeError(f"Invalid sign: {pun_id}")
 
             alternatives = sign.get("alternative sign")
 
             if not isinstance(sign.get("pun sign"), str):
-                raise ValueError(f"Invalid pun sign: {pun_id}")
+                raise TypeError(f"Invalid pun sign: {pun_id}")
 
             if not isinstance(alternatives, list) or not alternatives:
                 raise ValueError(f"Invalid alternative signs: {pun_id}")
@@ -135,12 +134,14 @@ def prepare_corpus(root: Path) -> dict:
             signs = []
 
             for sign in original["signs"]:
-                signs.append({
-                    "pun_sign": sign["pun sign"],
-                    "alternative_signs": sign["alternative sign"],
-                    "homograph": sign["homograph"],
-                    "homophone": sign["homophone"],
-                })
+                signs.append(
+                    {
+                        "pun_sign": sign["pun sign"],
+                        "alternative_signs": sign["alternative sign"],
+                        "homograph": sign["homograph"],
+                        "homophone": sign["homophone"],
+                    }
+                )
 
                 categories[f"{int(sign['homograph'])}_{int(sign['homophone'])}"] += 1
 
@@ -169,20 +170,19 @@ def prepare_corpus(root: Path) -> dict:
         "total_puns": len(processed),
         "total_signs": sum(len(item["signs"]) for item in processed),
         "splits": split_counts,
-        "sign_categories": {
-            key: categories.get(key, 0)
-            for key in ("0_0", "0_1", "1_0", "1_1")
-        },
+        "sign_categories": {key: categories.get(key, 0) for key in ("0_0", "0_1", "1_0", "1_1")},
         "duplicate_text_groups": duplicates,
     }
 
     output_dir.mkdir(parents=True, exist_ok=True)
     report_dir.mkdir(parents=True, exist_ok=True)
 
-    (output_dir / "puns_only.json").write_text(
-        json.dumps(processed, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    for split in SPLITS:
+        records = [item for item in processed if item["split"] == split]
+        (output_dir / f"{split}_puns.json").write_text(
+            json.dumps(records, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
 
     (report_dir / "summary.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n",

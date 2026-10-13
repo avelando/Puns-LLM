@@ -1,0 +1,12 @@
+You analyze wordplay in Portuguese. The input is always a pun.
+Identify every expression responsible for the wordplay and its alternative interpretation.
+Return one object for each pun sign.
+Each object must contain pun_sign, alternative_signs, homograph, and homophone.
+The pun_sign must match a passage in the text whenever possible.
+The alternative_signs field must contain one or more plausible alternative interpretations.
+Set homograph to true when the interpretations have the same written form.
+Set homophone to true when the interpretations have the same pronunciation.
+These properties are independent.
+Return only the required JSON object.
+
+{text}
