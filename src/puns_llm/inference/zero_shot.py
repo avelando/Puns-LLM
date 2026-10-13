@@ -5,6 +5,8 @@ from pathlib import Path
 from puns_llm.inference.ollama import OllamaClient
 from puns_llm.inference.schema import PREDICTION_SCHEMA, build_messages, parse_prediction
 
+PROTOCOLS = {"zero_shot_v2": "zero_shot_v2.txt", "one_shot": "one_shot.txt"}
+
 
 def fingerprint(value: object) -> str:
     data = json.dumps(value, ensure_ascii=False, sort_keys=True).encode("utf-8")
@@ -29,6 +31,7 @@ def run_zero_shot(
     limit: int | None = None,
     host: str | None = None,
     client: OllamaClient | None = None,
+    protocol: str | None = None,
 ) -> dict:
     settings = load_json(root / "configs/experiments/zero_shot.json")
     models = load_json(root / "configs/models/ollama.json")["models"]
@@ -36,9 +39,13 @@ def run_zero_shot(
     model = model or settings["model"]
     host = host or settings["host"]
     limit = settings["limit"] if limit is None else limit
+    protocol = protocol or settings["protocol"]
 
     if model not in models:
         raise ValueError(f"Unconfigured model: {model}")
+
+    if protocol not in PROTOCOLS:
+        raise ValueError(f"Unsupported inference protocol: {protocol}")
 
     if type(limit) is not int or limit < 0:
         raise ValueError("Limit must be a nonnegative integer")
@@ -63,8 +70,7 @@ def run_zero_shot(
         raise ValueError("Duplicate IDs in processed dataset")
 
     examples = dataset[:limit] if limit else dataset
-
-    instructions = (root / "configs/prompts/zero_shot.txt").read_text(encoding="utf-8")
+    instructions = (root / "configs/prompts" / PROTOCOLS[protocol]).read_text(encoding="utf-8")
 
     options = {
         "temperature": settings["temperature"],
@@ -79,6 +85,7 @@ def run_zero_shot(
 
     profile = {
         "backend": "ollama",
+        "protocol": protocol,
         "model": model,
         "model_digest": digest,
         "dataset_sha256": hashlib.sha256(data_path.read_bytes()).hexdigest(),
@@ -88,28 +95,29 @@ def run_zero_shot(
         "think": think,
     }
 
-    output_dir = root / "results/zero_shot" / model.replace(":", "_")
+    output_dir = root / "results" / protocol / model.replace(":", "_")
     metadata_path = output_dir / "metadata.json"
     predictions_path = output_dir / "predictions.jsonl"
 
     if metadata_path.exists():
         if load_json(metadata_path) != profile:
             raise ValueError(f"Run configuration changed: {metadata_path}")
-
     elif predictions_path.exists():
         raise ValueError(f"Missing metadata for existing predictions: {predictions_path}")
-
     else:
         output_dir.mkdir(parents=True, exist_ok=True)
-
         metadata_path.write_text(
             json.dumps(profile, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
 
     attempts = read_predictions(predictions_path)
-
     completed = {item["id"] for item in attempts if item.get("prediction") is not None}
+
+    cached_valid = sum(item["id"] in completed for item in examples)
+    new_attempts = 0
+
+    print(f"{model} | {protocol} | selected={len(examples)} | cached={cached_valid}")
 
     with predictions_path.open("a", encoding="utf-8") as stream:
         for sample in examples:
@@ -130,7 +138,6 @@ def run_zero_shot(
                 prediction = parse_prediction(content)
                 error = None
                 completed.add(sample["id"])
-
             except ValueError as exception:
                 prediction = None
                 error = str(exception)
@@ -148,8 +155,9 @@ def run_zero_shot(
 
             stream.write(json.dumps(record, ensure_ascii=False) + "\n")
             stream.flush()
+            new_attempts += 1
 
-            status = "ok" if error is None else "invalid"
+            status = "valid_json" if error is None else "invalid_json"
             print(f"{model} | {sample['id']} | {status}")
 
     attempts = read_predictions(predictions_path)
@@ -171,9 +179,12 @@ def run_zero_shot(
 
     report = {
         "model": model,
+        "protocol": protocol,
         "selected": len(examples),
-        "successful": len(successful_ids),
-        "invalid": invalid,
+        "valid_json": len(successful_ids),
+        "cached_valid": cached_valid,
+        "new_attempts": new_attempts,
+        "invalid_json": invalid,
         "remaining": len(selected_ids - successful_ids),
         "total_attempts_in_file": len(attempts),
     }

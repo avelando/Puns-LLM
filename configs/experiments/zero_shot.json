@@ -1,5 +1,6 @@
 {
   "model": "gemma3:27b",
+  "protocol": "zero_shot_v2",
   "limit": 5,
   "host": "http://127.0.0.1:11434",
   "temperature": 0,

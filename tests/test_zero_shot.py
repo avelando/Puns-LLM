@@ -70,6 +70,7 @@ def create_project(tmp_path):
 
     settings = {
         "model": "gemma3:27b",
+        "protocol": "zero_shot_v2",
         "limit": 1,
         "host": "http://localhost:11434",
         "temperature": 0,
@@ -85,7 +86,7 @@ def create_project(tmp_path):
         json.dumps({"models": {"gemma3:27b": {"think": None}}})
     )
 
-    (tmp_path / "configs/prompts/zero_shot.txt").write_text("Identify the pun.\n\n{text}")
+    (tmp_path / "configs/prompts/zero_shot_v2.txt").write_text("Identify the pun.\n\n{text}")
 
 
 def test_zero_shot_resume_without_gold_leakage(tmp_path):
@@ -96,10 +97,12 @@ def test_zero_shot_resume_without_gold_leakage(tmp_path):
     second = run_zero_shot(tmp_path, limit=2, client=client)
     third = run_zero_shot(tmp_path, limit=2, client=client)
 
-    assert first["successful"] == 1
-    assert second["successful"] == 2
+    assert first["valid_json"] == 1
+    assert second["valid_json"] == 2
     assert third["total_attempts_in_file"] == 2
     assert len(client.calls) == 2
+    assert third["cached_valid"] == 2
+    assert third["new_attempts"] == 0
     assert "gold secret" not in json.dumps(client.calls)
     assert "validation" not in json.dumps(client.calls)
 
@@ -118,3 +121,17 @@ def test_refuse_changed_configuration(tmp_path):
 
     with pytest.raises(ValueError, match="Run configuration changed"):
         run_zero_shot(tmp_path, client=client)
+
+
+def test_protocols_create_separate_runs(tmp_path):
+    create_project(tmp_path)
+    (tmp_path / "configs/prompts/one_shot.txt").write_text("Example: token\n\n{text}")
+
+    client = FakeOllama()
+
+    run_zero_shot(tmp_path, client=client)
+    run_zero_shot(tmp_path, client=client, protocol="one_shot")
+
+    assert (tmp_path / "results/zero_shot_v2/gemma3_27b/predictions.jsonl").exists()
+    assert (tmp_path / "results/one_shot/gemma3_27b/predictions.jsonl").exists()
+    assert len(client.calls) == 2
