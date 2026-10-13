@@ -1,0 +1,12 @@
+{
+  "model": "qwen3:32b",
+  "protocol": "zero_shot_v2",
+  "selected": 48,
+  "valid_json": 48,
+  "cached_valid": 0,
+  "cached_invalid": 0,
+  "new_attempts": 48,
+  "invalid_json": 0,
+  "remaining": 0,
+  "total_attempts_in_file": 48
+}

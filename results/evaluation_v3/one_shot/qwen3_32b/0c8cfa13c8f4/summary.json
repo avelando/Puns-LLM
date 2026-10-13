@@ -1,0 +1,149 @@
+{
+  "evaluator_version": 3,
+  "model": "qwen3:32b",
+  "protocol": "one_shot",
+  "selected": 48,
+  "attempted": 48,
+  "missing": 0,
+  "invalid_json": 0,
+  "complete": true,
+  "conditional_on_exact_location": {
+    "matched_signs": 34,
+    "alternative": {
+      "tp": 11,
+      "fp": 24,
+      "fn": 28,
+      "precision": 0.3142857142857143,
+      "recall": 0.28205128205128205,
+      "f1": 0.29729729729729726,
+      "any_match_accuracy": 0.3235294117647059,
+      "top1_accuracy": 0.3235294117647059,
+      "set_exact_accuracy": 0.29411764705882354,
+      "subgroups": {
+        "identical": {
+          "support": 10,
+          "any_match_accuracy": 0.6,
+          "top1_accuracy": 0.6,
+          "set_f1": 0.5714285714285713
+        },
+        "different": {
+          "support": 24,
+          "any_match_accuracy": 0.20833333333333334,
+          "top1_accuracy": 0.20833333333333334,
+          "set_f1": 0.18867924528301888
+        }
+      }
+    },
+    "homograph": {
+      "tp": 6,
+      "fp": 5,
+      "fn": 4,
+      "tn": 19,
+      "precision": 0.5454545454545454,
+      "recall": 0.6,
+      "f1": 0.5714285714285713,
+      "accuracy": 0.7352941176470589
+    },
+    "homophone": {
+      "tp": 17,
+      "fp": 17,
+      "fn": 0,
+      "tn": 0,
+      "precision": 0.5,
+      "recall": 1.0,
+      "f1": 0.6666666666666666,
+      "accuracy": 0.5
+    },
+    "category_confusion": {
+      "0_0": {
+        "0_0": 0,
+        "0_1": 12,
+        "1_0": 0,
+        "1_1": 4
+      },
+      "0_1": {
+        "0_0": 0,
+        "0_1": 7,
+        "1_0": 0,
+        "1_1": 1
+      },
+      "1_0": {
+        "0_0": 0,
+        "0_1": 1,
+        "1_0": 0,
+        "1_1": 0
+      },
+      "1_1": {
+        "0_0": 0,
+        "0_1": 3,
+        "1_0": 0,
+        "1_1": 6
+      }
+    },
+    "category_metrics": {
+      "0_0": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 16,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 16
+      },
+      "0_1": {
+        "tp": 7,
+        "fp": 16,
+        "fn": 1,
+        "precision": 0.30434782608695654,
+        "recall": 0.875,
+        "f1": 0.4516129032258065,
+        "support": 8
+      },
+      "1_0": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 1
+      },
+      "1_1": {
+        "tp": 6,
+        "fp": 5,
+        "fn": 3,
+        "precision": 0.5454545454545454,
+        "recall": 0.6666666666666666,
+        "f1": 0.6,
+        "support": 9
+      }
+    },
+    "macro_f1_all_categories": 0.26290322580645165,
+    "macro_f1_supported_categories": 0.26290322580645165
+  },
+  "location_exact": {
+    "tp": 34,
+    "fp": 26,
+    "fn": 20,
+    "precision": 0.5666666666666667,
+    "recall": 0.6296296296296297,
+    "f1": 0.5964912280701755,
+    "example_accuracy": 0.4791666666666667
+  },
+  "location_tokens_labeled": {
+    "tp": 55,
+    "fp": 24,
+    "fn": 16,
+    "precision": 0.6962025316455697,
+    "recall": 0.7746478873239436,
+    "f1": 0.7333333333333333,
+    "aligned_examples": 48,
+    "unaligned_examples": 0,
+    "matching_rule": "all_literal_occurrences_with_gold_consistency_check"
+  },
+  "end_to_end": {
+    "any_match_accuracy": 0.16666666666666666,
+    "strict_set_accuracy": 0.16666666666666666
+  },
+  "selection_sha256": "0c8cfa13c8f46c79f7e2b2cfabfff5848509fcdf73025e6af59f3c7bdda5706e"
+}
