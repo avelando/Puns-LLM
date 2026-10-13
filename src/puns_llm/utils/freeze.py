@@ -15,6 +15,7 @@ FILES = (
     "configs/prompts/oracle_one_shot.txt",
     "src/puns_llm/inference/zero_shot.py",
     "src/puns_llm/inference/schema.py",
+    "src/puns_llm/evaluation/score.py",
     "src/puns_llm/evaluation/score_v2.py",
     "src/puns_llm/evaluation/score_v3.py",
     "src/puns_llm/data/cohorts.py",
