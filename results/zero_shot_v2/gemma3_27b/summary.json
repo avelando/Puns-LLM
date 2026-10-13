@@ -1,0 +1,11 @@
+{
+  "model": "gemma3:27b",
+  "protocol": "zero_shot_v2",
+  "selected": 30,
+  "valid_json": 30,
+  "cached_valid": 5,
+  "new_attempts": 25,
+  "invalid_json": 0,
+  "remaining": 0,
+  "total_attempts_in_file": 30
+}

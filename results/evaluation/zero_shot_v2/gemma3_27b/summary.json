@@ -1,0 +1,40 @@
+{
+  "model": "gemma3:27b",
+  "protocol": "zero_shot_v2",
+  "selected": 30,
+  "scored": 30,
+  "missing": 0,
+  "valid_json": 30,
+  "invalid_json": 0,
+  "location": {
+    "gold_signs": 30,
+    "predicted_signs": 33,
+    "exact_matches": 24,
+    "precision": 0.7272727272727273,
+    "recall": 0.8,
+    "f1": 0.761904761904762,
+    "example_exact_match_accuracy": 0.7333333333333333,
+    "mean_best_token_overlap_per_gold_sign": 0.9
+  },
+  "conditional_on_exact_location": {
+    "matched_signs": 24,
+    "alternative_accuracy": 0.375,
+    "homograph_accuracy": 0.4583333333333333,
+    "homophone_accuracy": 0.16666666666666666,
+    "joint_accuracy": 0.0,
+    "category_macro_f1_supported": 0.0,
+    "category_f1": {
+      "0_0": 0.0,
+      "0_1": 0.0,
+      "1_0": 0.0,
+      "1_1": 0.0
+    },
+    "category_support": {
+      "0_0": 7,
+      "0_1": 8,
+      "1_0": 0,
+      "1_1": 9
+    }
+  },
+  "end_to_end_example_accuracy": 0.0
+}
