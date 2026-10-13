@@ -37,5 +37,5 @@ def run_menu(actions: list[MenuAction], root: Path) -> int:
 
         try:
             options[selected].handler(root)
-        except (OSError, ValueError) as error:
+        except (OSError, RuntimeError, ValueError) as error:
             print(f"Error: {error}")
