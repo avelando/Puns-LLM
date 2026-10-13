@@ -1,0 +1,11 @@
+{
+  "model": "gemma3:27b",
+  "split": "validation",
+  "limit": 5,
+  "host": "http://127.0.0.1:11434",
+  "temperature": 0,
+  "seed": 42,
+  "num_ctx": 4096,
+  "num_predict": 512,
+  "timeout_seconds": 300
+}
