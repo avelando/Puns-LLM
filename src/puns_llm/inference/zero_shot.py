@@ -5,7 +5,12 @@ from pathlib import Path
 from puns_llm.inference.ollama import OllamaClient
 from puns_llm.inference.schema import PREDICTION_SCHEMA, build_messages, parse_prediction
 
-PROTOCOLS = {"zero_shot_v2": "zero_shot_v2.txt", "one_shot": "one_shot.txt"}
+PROTOCOLS = {
+    "zero_shot_v2": "zero_shot_v2.txt",
+    "one_shot": "one_shot.txt",
+    "oracle_zero_shot_v2": "oracle_zero_shot_v2.txt",
+    "oracle_one_shot": "oracle_one_shot.txt",
+}
 
 
 def fingerprint(value: object) -> str:
@@ -32,6 +37,8 @@ def run_zero_shot(
     host: str | None = None,
     client: OllamaClient | None = None,
     protocol: str | None = None,
+    ids: list[str] | None = None,
+    retry_invalid: bool = False,
 ) -> dict:
     settings = load_json(root / "configs/experiments/zero_shot.json")
     models = load_json(root / "configs/models/ollama.json")["models"]
@@ -69,7 +76,13 @@ def run_zero_shot(
     if len(identifiers) != len(set(identifiers)):
         raise ValueError("Duplicate IDs in processed dataset")
 
-    examples = dataset[:limit] if limit else dataset
+    if ids is not None:
+        index = {item["id"]: item for item in dataset}
+        if len(ids) != len(set(ids)) or any(identifier not in index for identifier in ids):
+            raise ValueError("Invalid cohort IDs")
+        examples = [index[identifier] for identifier in ids]
+    else:
+        examples = dataset[:limit] if limit else dataset
     instructions = (root / "configs/prompts" / PROTOCOLS[protocol]).read_text(encoding="utf-8")
 
     options = {
@@ -113,6 +126,8 @@ def run_zero_shot(
 
     attempts = read_predictions(predictions_path)
     completed = {item["id"] for item in attempts if item.get("prediction") is not None}
+    attempted = {item["id"] for item in attempts}
+    cached_invalid = sum(item["id"] in attempted - completed for item in examples)
 
     cached_valid = sum(item["id"] in completed for item in examples)
     new_attempts = 0
@@ -121,26 +136,32 @@ def run_zero_shot(
 
     with predictions_path.open("a", encoding="utf-8") as stream:
         for sample in examples:
-            if sample["id"] in completed:
+            if sample["id"] in completed or (not retry_invalid and sample["id"] in attempted):
                 continue
 
-            response = client.chat(
-                model,
-                build_messages(sample["text"], instructions),
-                PREDICTION_SCHEMA,
-                options,
-                think,
-            )
+            if protocol.startswith("oracle_"):
+                content = instructions.replace("{text}", sample["text"]).replace(
+                    "{pun_signs}",
+                    json.dumps([item["pun_sign"] for item in sample["signs"]], ensure_ascii=False),
+                )
+                messages = [{"role": "user", "content": content}]
+            else:
+                messages = build_messages(sample["text"], instructions)
 
-            content = response["message"]["content"]
-
+            response = {}
+            content = None
+            fatal_error = None
             try:
+                response = client.chat(model, messages, PREDICTION_SCHEMA, options, think)
+                content = response["message"]["content"]
                 prediction = parse_prediction(content)
                 error = None
                 completed.add(sample["id"])
-            except ValueError as exception:
+            except (OSError, RuntimeError, ValueError, KeyError, TypeError) as exception:
                 prediction = None
                 error = str(exception)
+                if isinstance(exception, (OSError, RuntimeError)):
+                    fatal_error = error
 
             record = {
                 "id": sample["id"],
@@ -156,9 +177,12 @@ def run_zero_shot(
             stream.write(json.dumps(record, ensure_ascii=False) + "\n")
             stream.flush()
             new_attempts += 1
+            attempted.add(sample["id"])
 
             status = "valid_json" if error is None else "invalid_json"
             print(f"{model} | {sample['id']} | {status}")
+            if fatal_error is not None:
+                raise RuntimeError(f"Backend failure saved for {sample['id']}: {fatal_error}")
 
     attempts = read_predictions(predictions_path)
     selected_ids = {item["id"] for item in examples}
@@ -183,6 +207,7 @@ def run_zero_shot(
         "selected": len(examples),
         "valid_json": len(successful_ids),
         "cached_valid": cached_valid,
+        "cached_invalid": cached_invalid,
         "new_attempts": new_attempts,
         "invalid_json": invalid,
         "remaining": len(selected_ids - successful_ids),
