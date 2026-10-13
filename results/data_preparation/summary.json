@@ -1,0 +1,49 @@
+{
+  "total_puns": 2850,
+  "total_signs": 2909,
+  "splits": {
+    "train": {
+      "total": 3990,
+      "puns": 1995,
+      "non_puns": 1995
+    },
+    "validation": {
+      "total": 570,
+      "puns": 285,
+      "non_puns": 285
+    },
+    "test": {
+      "total": 1140,
+      "non_puns": 570,
+      "puns": 570
+    }
+  },
+  "sign_categories": {
+    "0_0": 1827,
+    "0_1": 572,
+    "1_0": 6,
+    "1_1": 504
+  },
+  "duplicate_text_groups": [
+    [
+      {
+        "id": "4.287",
+        "split": "train"
+      },
+      {
+        "id": "4.364",
+        "split": "train"
+      }
+    ],
+    [
+      {
+        "id": "4.295",
+        "split": "train"
+      },
+      {
+        "id": "4.53",
+        "split": "validation"
+      }
+    ]
+  ]
+}

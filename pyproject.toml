@@ -26,3 +26,6 @@ dev = [
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[project.scripts]
+puns-llm = "puns_llm.cli:main"
