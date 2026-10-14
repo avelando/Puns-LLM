@@ -1,0 +1,19 @@
+{
+  "format_version": 2,
+  "scope": "all_puns",
+  "model": "gemma3:27b",
+  "model_digest": "6be2e2ba6843b9255820e2de2cbbe75cfdef0294ac7a531572e654d6e0eefe7d",
+  "protocol": "oracle_one_shot",
+  "expected_puns": 2850,
+  "dataset_sha256": "f1881712fa7897d8b0a28d5e7d906a9ff27723fd5af4545f434ca6e9705fded4",
+  "prompt_sha256": "f71b4ee2da1b3c4c56f4bbbbe2b9c7a06b4627379909edbb26b304f9087513ca",
+  "schema_sha256": "e1f69bbab8c86d96c6e3c79cf7c1cd46c3b09818c8802f2c7d855e771b13cf0f",
+  "options": {
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 4096,
+    "num_predict": 512
+  },
+  "think": null,
+  "max_invalid_retries": 2
+}
