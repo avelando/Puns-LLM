@@ -1,12 +1,12 @@
 {
   "model": "gemma3:27b",
   "protocol": "oracle_one_shot",
-  "selected": 48,
-  "valid_json": 48,
+  "selected": 2772,
+  "valid_json": 2772,
   "cached_valid": 0,
   "cached_invalid": 0,
-  "new_attempts": 48,
+  "new_attempts": 2772,
   "invalid_json": 0,
   "remaining": 0,
-  "total_attempts_in_file": 48
+  "total_attempts_in_file": 2820
 }
