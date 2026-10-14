@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "files_sha256": {
+    "data/processed/puns_only.json": "f1881712fa7897d8b0a28d5e7d906a9ff27723fd5af4545f434ca6e9705fded4",
+    "configs/experiments/cohorts.json": "8dd0b39cafad00db0f7b9a660153d380f58559a81637ea1ebd1ba1aa61f08513",
+    "configs/experiments/zero_shot.json": "68d1bf99017bf5031cce66554a5dde1623fa338b89fb19fcb6be52b961f6c610",
+    "configs/models/ollama.json": "ddaed0e588d807e8aae16c122c1942e27dfc765b0ba51aafac0ab72bca2a6241",
+    "configs/prompts/zero_shot_v2.txt": "9f9a7b8766b082b98c784e709bd4a7258c33f2278f54bda7eeabe06a4598b808",
+    "configs/prompts/one_shot.txt": "aedad8ac9821568585d74bb55ee699877e0ffa54eab6f4e256e0e8b0e61aee6b",
+    "configs/prompts/oracle_zero_shot_v2.txt": "fa4b5f21b96ea30a4273ab90ed666a7df2f41c473d092a130f6a3d44a1f24260",
+    "configs/prompts/oracle_one_shot.txt": "f71b4ee2da1b3c4c56f4bbbbe2b9c7a06b4627379909edbb26b304f9087513ca",
+    "src/puns_llm/inference/zero_shot.py": "3ad98ee5d0663aa61883dac232147dd598c0f052a2761e787890babee9cee674",
+    "src/puns_llm/inference/schema.py": "1a6c728f7cd0a81f6faa7cc6965465e05b75096d963cadeb2805d7a6bf73e53d",
+    "src/puns_llm/evaluation/score.py": "57692fbb2c50919d0f338ba2dd9cc544841658889278fb841e7a10c9a36f1a79",
+    "src/puns_llm/evaluation/score_v2.py": "7eeaf6d124febd3094c10284099217f08e6a2c39d3bc47e75103b6a99585be61",
+    "src/puns_llm/evaluation/score_v3.py": "c3f7e9cbec8b88c235ebafcccf494e39199a264a8fd7c94990fe0a25c2a5c33e",
+    "src/puns_llm/data/cohorts.py": "ca4ff1545d72d9ce374583f08556f8b895ffea35913e6f8be0ef450290103ac8",
+    "src/puns_llm/data/prepare.py": "a8a8459e34edf5715c4b408dcb7f773c7d1d2989ebe744b897bca1e5940af93b",
+    "src/puns_llm/inference/ollama.py": "3d8bef8a3aa039e2ca4ad3d86dc179dccb6f6cc6b354f5993ed8175ae8fb1967",
+    "src/puns_llm/cli.py": "5aa02ebf99c1804e160e01a61110ac4978a0c63f8a286869d49fff82eb98f523",
+    "src/puns_llm/utils/freeze.py": "b972279206da6dc1113224648e041836dbb4e9f024463a7eef841d3cf8d8326e",
+    "pyproject.toml": "8cf9c9fdf84f2aa30312a9d2b2afc78b9082d42abe3fb7c54784249edcd59ce3",
+    "uv.lock": "a926e7453bf57d83a9db1ed37d92687cff70f21458789df09cdba1316429eca7"
+  },
+  "models": {
+    "gemma3:27b": "6be2e2ba6843b9255820e2de2cbbe75cfdef0294ac7a531572e654d6e0eefe7d",
+    "qwen3:32b": "030ee887880fc378860c2dd35101da424377520441ae4bfe7be6deff8ade7840"
+  }
+}
