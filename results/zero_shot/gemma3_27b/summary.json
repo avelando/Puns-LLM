@@ -1,8 +1,0 @@
-{
-  "model": "gemma3:27b",
-  "selected": 5,
-  "successful": 5,
-  "invalid": 0,
-  "remaining": 0,
-  "total_attempts_in_file": 5
-}

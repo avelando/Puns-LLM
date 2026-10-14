@@ -6,14 +6,16 @@ from puns_llm.inference.ollama import OllamaClient
 
 FILES = (
     "data/processed/puns_only.json",
-    "configs/experiments/cohorts.json",
     "configs/experiments/zero_shot.json",
+    "configs/experiments/official.json",
     "configs/models/ollama.json",
     "configs/prompts/zero_shot_v2.txt",
     "configs/prompts/one_shot.txt",
     "configs/prompts/oracle_zero_shot_v2.txt",
     "configs/prompts/oracle_one_shot.txt",
     "src/puns_llm/inference/zero_shot.py",
+    "src/puns_llm/inference/official.py",
+    "src/puns_llm/evaluation/official.py",
     "src/puns_llm/inference/schema.py",
     "src/puns_llm/evaluation/score.py",
     "src/puns_llm/evaluation/score_v2.py",
@@ -35,7 +37,7 @@ def sha(path: Path) -> str:
 def manifest(root: Path, client: OllamaClient) -> dict:
     configs = json.loads((root / "configs/models/ollama.json").read_text(encoding="utf-8"))
     return {
-        "version": 1,
+        "version": 2,
         "files_sha256": {file: sha(root / file) for file in FILES},
         "models": {name: client.model_digest(name) for name in configs["models"]},
     }
