@@ -141,7 +141,14 @@ def score_item(gold: dict, attempt: dict | None, oracle: bool) -> dict:
     references = gold["signs"]
     prediction = attempt.get("prediction") if attempt else None
     candidates = prediction["signs"] if isinstance(prediction, dict) else []
-    exact = annotation_pairs(references, candidates)
+    if oracle:
+        exact = [
+            (index, index)
+            for index, (reference, candidate) in enumerate(zip(references, candidates))
+            if normalize(reference["pun_sign"]) == normalize(candidate["pun_sign"])
+        ]
+    else:
+        exact = annotation_pairs(references, candidates)
     partial = partial_pairs(references, candidates)
     matched = []
     for gi, pi in exact:
