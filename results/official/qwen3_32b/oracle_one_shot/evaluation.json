@@ -1,0 +1,134 @@
+{
+  "evaluator_version": 3,
+  "model": "qwen3:32b",
+  "protocol": "oracle_one_shot",
+  "selected": 2850,
+  "attempted": 2850,
+  "missing": 0,
+  "invalid_json": 0,
+  "complete": true,
+  "conditional_on_exact_location": {
+    "matched_signs": 2907,
+    "alternative": {
+      "tp": 664,
+      "fp": 2273,
+      "fn": 2716,
+      "precision": 0.22608103506979912,
+      "recall": 0.19644970414201182,
+      "f1": 0.21022637327845495,
+      "any_match_accuracy": 0.22738218094255247,
+      "top1_accuracy": 0.22669418644650843,
+      "set_exact_accuracy": 0.195734434124527,
+      "subgroups": {
+        "identical": {
+          "support": 508,
+          "any_match_accuracy": 0.9429133858267716,
+          "top1_accuracy": 0.9429133858267716,
+          "set_f1": 0.9392156862745098
+        },
+        "different": {
+          "support": 2399,
+          "any_match_accuracy": 0.07586494372655272,
+          "top1_accuracy": 0.07503126302626094,
+          "set_f1": 0.06985085897677931
+        }
+      }
+    },
+    "homograph": {
+      "tp": 469,
+      "fp": 1697,
+      "fn": 41,
+      "tn": 700,
+      "precision": 0.216528162511542,
+      "recall": 0.9196078431372549,
+      "f1": 0.3505231689088191,
+      "accuracy": 0.4021327829377365
+    },
+    "homophone": {
+      "tp": 1070,
+      "fp": 1822,
+      "fn": 6,
+      "tn": 9,
+      "precision": 0.3699861687413555,
+      "recall": 0.9944237918215614,
+      "f1": 0.5393145161290323,
+      "accuracy": 0.3711730306157551
+    },
+    "category_confusion": {
+      "0_0": {
+        "0_0": 5,
+        "0_1": 533,
+        "1_0": 4,
+        "1_1": 1283
+      },
+      "0_1": {
+        "0_0": 1,
+        "0_1": 161,
+        "1_0": 0,
+        "1_1": 410
+      },
+      "1_0": {
+        "0_0": 0,
+        "0_1": 0,
+        "1_0": 0,
+        "1_1": 6
+      },
+      "1_1": {
+        "0_0": 4,
+        "0_1": 37,
+        "1_0": 1,
+        "1_1": 462
+      }
+    },
+    "category_metrics": {
+      "0_0": {
+        "tp": 5,
+        "fp": 5,
+        "fn": 1820,
+        "precision": 0.5,
+        "recall": 0.0027397260273972603,
+        "f1": 0.005449591280653951,
+        "support": 1825
+      },
+      "0_1": {
+        "tp": 161,
+        "fp": 570,
+        "fn": 411,
+        "precision": 0.22024623803009577,
+        "recall": 0.28146853146853146,
+        "f1": 0.24712202609363007,
+        "support": 572
+      },
+      "1_0": {
+        "tp": 0,
+        "fp": 5,
+        "fn": 6,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 6
+      },
+      "1_1": {
+        "tp": 462,
+        "fp": 1699,
+        "fn": 42,
+        "precision": 0.21378991207774178,
+        "recall": 0.9166666666666666,
+        "f1": 0.34671669793621007,
+        "support": 504
+      }
+    },
+    "macro_f1_all_categories": 0.14982207882762352,
+    "macro_f1_supported_categories": 0.14982207882762352
+  },
+  "oracle": {
+    "matched_gold_signs": 2907,
+    "gold_signs": 2909,
+    "sign_copy_recall": 0.9993124785149536,
+    "all_interpretations_correct": 0.15789473684210525
+  },
+  "scope": "all_puns",
+  "recorded": 2850,
+  "processed_all_puns": true,
+  "total_model_calls": 2850
+}

@@ -1,0 +1,10 @@
+You analyze Portuguese wordplay. The gold pun signs are provided as linguistic anchors.
+For each supplied pun sign, recover only alternative written expressions, homograph and homophone properties.
+Copy the provided pun_sign exactly into the matching output object.
+Do not invent additional pun signs. Do not repeat definitions or translations as alternatives.
+Return one entry for every supplied sign in the given order.
+Homograph is true when two interpretations share spelling; homophone is true when they share pronunciation.
+The two labels are independent. Return only valid JSON.
+
+Text: {text}
+Gold pun signs (not their interpretations): {pun_signs}

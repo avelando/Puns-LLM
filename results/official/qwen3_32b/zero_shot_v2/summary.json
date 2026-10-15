@@ -1,0 +1,12 @@
+{
+  "model": "qwen3:32b",
+  "protocol": "zero_shot_v2",
+  "selected": 2850,
+  "recorded": 2850,
+  "valid_json": 2847,
+  "invalid_json": 3,
+  "cached_records": 0,
+  "new_records": 2850,
+  "total_model_calls": 2857,
+  "complete_coverage": true
+}

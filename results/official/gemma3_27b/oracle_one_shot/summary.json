@@ -1,0 +1,12 @@
+{
+  "model": "gemma3:27b",
+  "protocol": "oracle_one_shot",
+  "selected": 2850,
+  "recorded": 2850,
+  "valid_json": 2850,
+  "invalid_json": 0,
+  "cached_records": 0,
+  "new_records": 2850,
+  "total_model_calls": 2850,
+  "complete_coverage": true
+}

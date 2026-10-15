@@ -1,0 +1,10 @@
+{
+  "models": {
+    "gemma3:27b": {
+      "think": null
+    },
+    "qwen3:32b": {
+      "think": false
+    }
+  }
+}

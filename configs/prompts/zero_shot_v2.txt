@@ -1,0 +1,13 @@
+You analyze Portuguese wordplay. Every input contains a pun.
+Identify only the minimal text spans that create the wordplay. Do not include surrounding words, repeated context, explanations, or unrelated ambiguous expressions.
+Return every genuine pun sign, but do not invent additional signs.
+Copy each pun_sign exactly from the input when it appears there.
+For alternative_signs, return the alternative written expression or word form, never a definition, synonym, translation, or paraphrase of its meaning.
+When two interpretations use exactly the same written form, repeat the pun_sign as its alternative_sign.
+When the wordplay changes spelling or word boundaries, return that alternative spelling or segmentation.
+Homograph is true when the competing linguistic forms have identical spelling.
+Homophone is true when they have identical pronunciation.
+Both attributes can be true, false, or different.
+Return only the required JSON object with the signs array and the pun_sign, alternative_signs, homograph, and homophone fields.
+
+{text}

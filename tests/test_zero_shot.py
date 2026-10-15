@@ -1,0 +1,137 @@
+import json
+
+import pytest
+
+from puns_llm.inference.zero_shot import run_zero_shot
+
+
+class FakeOllama:
+    def __init__(self):
+        self.calls = []
+
+    def model_digest(self, model):
+        return "test-digest"
+
+    def chat(self, model, messages, schema, options, think):
+        self.calls.append(messages)
+
+        return {
+            "message": {
+                "content": json.dumps(
+                    {
+                        "signs": [
+                            {
+                                "pun_sign": "socorre",
+                                "alternative_signs": ["só corre"],
+                                "homograph": False,
+                                "homophone": True,
+                            }
+                        ]
+                    }
+                )
+            },
+            "eval_count": 25,
+        }
+
+
+def create_project(tmp_path):
+    for directory in (
+        "data/processed",
+        "configs/experiments",
+        "configs/models",
+        "configs/prompts",
+    ):
+        (tmp_path / directory).mkdir(parents=True)
+
+    records = [
+        {
+            "id": "1.1",
+            "text": "Porque ele socorre.",
+            "signs": [
+                {
+                    "pun_sign": "secret",
+                    "alternative_signs": ["gold secret"],
+                }
+            ],
+        },
+        {
+            "id": "1.2",
+            "text": "Porque o outro socorre.",
+            "signs": [
+                {
+                    "pun_sign": "secret",
+                    "alternative_signs": ["gold secret"],
+                }
+            ],
+        },
+    ]
+
+    (tmp_path / "data/processed/puns_only.json").write_text(json.dumps(records))
+
+    settings = {
+        "model": "gemma3:27b",
+        "protocol": "zero_shot_v2",
+        "limit": 1,
+        "host": "http://localhost:11434",
+        "temperature": 0,
+        "seed": 42,
+        "num_ctx": 4096,
+        "num_predict": 512,
+        "timeout_seconds": 300,
+    }
+
+    (tmp_path / "configs/experiments/zero_shot.json").write_text(json.dumps(settings))
+
+    (tmp_path / "configs/models/ollama.json").write_text(
+        json.dumps({"models": {"gemma3:27b": {"think": None}}})
+    )
+
+    (tmp_path / "configs/prompts/zero_shot_v2.txt").write_text("Identify the pun.\n\n{text}")
+
+
+def test_zero_shot_resume_without_gold_leakage(tmp_path):
+    create_project(tmp_path)
+    client = FakeOllama()
+
+    first = run_zero_shot(tmp_path, client=client)
+    second = run_zero_shot(tmp_path, limit=2, client=client)
+    third = run_zero_shot(tmp_path, limit=2, client=client)
+
+    assert first["valid_json"] == 1
+    assert second["valid_json"] == 2
+    assert third["total_attempts_in_file"] == 2
+    assert len(client.calls) == 2
+    assert third["cached_valid"] == 2
+    assert third["new_attempts"] == 0
+    assert "gold secret" not in json.dumps(client.calls)
+    assert "validation" not in json.dumps(client.calls)
+
+
+def test_refuse_changed_configuration(tmp_path):
+    create_project(tmp_path)
+    client = FakeOllama()
+
+    run_zero_shot(tmp_path, client=client)
+
+    settings = tmp_path / "configs/experiments/zero_shot.json"
+    data = json.loads(settings.read_text())
+
+    data["temperature"] = 0.5
+    settings.write_text(json.dumps(data))
+
+    with pytest.raises(ValueError, match="Run configuration changed"):
+        run_zero_shot(tmp_path, client=client)
+
+
+def test_protocols_create_separate_runs(tmp_path):
+    create_project(tmp_path)
+    (tmp_path / "configs/prompts/one_shot.txt").write_text("Example: token\n\n{text}")
+
+    client = FakeOllama()
+
+    run_zero_shot(tmp_path, client=client)
+    run_zero_shot(tmp_path, client=client, protocol="one_shot")
+
+    assert (tmp_path / "results/zero_shot_v2/gemma3_27b/predictions.jsonl").exists()
+    assert (tmp_path / "results/one_shot/gemma3_27b/predictions.jsonl").exists()
+    assert len(client.calls) == 2
